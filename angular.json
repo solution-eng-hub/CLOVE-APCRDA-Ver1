@@ -1,0 +1,186 @@
+{
+  "$schema": "./node_modules/@angular/cli/lib/config/schema.json",
+  "version": 1,
+  "newProjectRoot": "projects",
+  "compilerOptions": {
+    "types": [
+      "cesium"
+    ]
+  },
+  "projects": {
+    "angular-leaflet": {
+      "projectType": "application",
+      "schematics": {
+        "@schematics/angular:component": {
+          "style": "scss"
+        }
+      },
+      "root": "",
+      "sourceRoot": "src",
+      "prefix": "app",
+      "architect": {
+        "build": {
+          "builder": "@angular-devkit/build-angular:browser",
+          "options": {
+            "outputPath": "dist/angular-leaflet",
+            "index": "src/index.html",
+            "main": "src/main.ts",
+            "polyfills": [
+              "zone.js",
+              "src/polyfills.ts"
+            ],
+            "tsConfig": "tsconfig.app.json",
+            "inlineStyleLanguage": "scss",
+            "assets": [
+              "src/favicon.ico",
+              "src/assets",
+               {
+                "glob": "**/*",
+                "input": "repos",
+                "output": "repos"
+              },
+              {
+                "glob": "**/*",
+                "input": "node_modules/cesium/Build/Cesium",
+                "output": "assets/cesium"
+              }
+            ],
+            "styles": [
+              "node_modules/bootstrap/scss/bootstrap.scss",
+              "node_modules/bootstrap-icons/font/bootstrap-icons.css",
+              "node_modules/leaflet/dist/leaflet.css",
+              "src/styles.scss",
+              "node_modules/bootstrap/dist/css/bootstrap.min.css",
+              
+              "node_modules/jstree/dist/themes/default/style.min.css"
+              
+            ],
+            "scripts": [
+              "node_modules/bootstrap/dist/js/bootstrap.bundle.min.js",
+              "node_modules/jquery/dist/jquery.min.js",
+              "node_modules/cesium/Build/Cesium/Cesium.js",
+              "src/assets/libs/spectrum/spectrum.js",
+              "src/assets/libs/three.js/build/three.min.js",
+              "src/assets/libs/other/BinaryHeap.js",
+              "src/assets/libs/tween/tween.min.js",
+              "src/assets/libs/proj4/proj4.js",
+            
+              "src/assets/libs/d3/d3.js",
+              "src/assets/libs/openlayers3/ol.js",
+              "src/assets/libs/i18next/i18next.js",
+              "src/assets/libs/plasio/js/laslaz.js",
+              "node_modules/jstree/dist/jstree.min.js",
+              "node_modules/jquery-ui-dist/jquery-ui.min.js"
+            ],
+            "allowedCommonJsDependencies": [
+              "leaflet",
+              "dompurify",
+              "protobufjs",
+              "urijs",
+              "mersenne-twister",
+              "earcut",
+              "bitmap-sdf",
+              "grapheme-splitter",
+              "nosleep.js",
+              "@turf/jsts",
+              "rbush",
+              "skmeans",
+              "concaveman",
+              "polygon-clipping",
+              "deep-equal"
+            ]
+          },
+          "configurations": {
+            "production": {
+              "budgets": [
+                {
+                  "type": "initial",
+                  "maximumWarning": "40mb",
+                  "maximumError": "50mb"
+                },
+                {
+                  "type": "anyComponentStyle",
+                  "maximumWarning": "40mb",
+                  "maximumError": "50mb"
+                }
+              ],
+              "fileReplacements": [
+                {
+                  "replace": "src/environments/environment.ts",
+                  "with": "src/environments/environment.prod.ts"
+                }
+              ],
+              "outputHashing": "all",
+              "optimization": true,
+              "sourceMap": false,
+             
+              "namedChunks": false,
+              "aot": true,
+              "extractLicenses": true,
+              "vendorChunk": false,
+              "buildOptimizer": true
+              
+            },
+            "development": {
+              "buildOptimizer": false,
+              "optimization": false,
+              "vendorChunk": true,
+              "extractLicenses": false,
+              "sourceMap": true,
+              "namedChunks": true
+            }
+          },
+          "defaultConfiguration": "production"
+        },
+        "serve": {
+          "builder": "@angular-devkit/build-angular:dev-server",
+          "configurations": {
+            "production": {
+              "browserTarget": "angular-leaflet:build:production"
+            },
+            "development": {
+              "browserTarget": "angular-leaflet:build:development"
+            }
+          },
+          "defaultConfiguration": "development",
+          "options": {}
+        },
+        "extract-i18n": {
+          "builder": "@angular-devkit/build-angular:extract-i18n",
+          "options": {
+            "browserTarget": "angular-leaflet:build"
+          }
+        },
+        "test": {
+          "builder": "@angular-devkit/build-angular:karma",
+          "options": {
+            "polyfills": [
+              "zone.js",
+              "zone.js/testing",
+              "src/polyfills.ts"
+            ],
+            "tsConfig": "tsconfig.spec.json",
+            "inlineStyleLanguage": "scss",
+            "assets": [
+              "src/favicon.ico",
+              "src/assets",
+              "src/viewer.html",
+              {
+                "glob": "**/*",
+                "input": "node_modules/cesium/Build/Cesium",
+                "output": "assets/cesium"
+              }
+            ],
+            "styles": [
+              "src/styles.scss"
+            ],
+            "scripts": []
+          }
+        }
+      }
+    }
+  },
+  "cli": {
+    "analytics": "e76ce2e7-cbad-424d-8890-8d79eacdd6af"
+  }
+}

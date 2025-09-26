@@ -1,0 +1,212 @@
+
+<div id="sidebar_root" class="">
+	<div> 
+
+	<div id="menu" class="accordion">
+
+		
+		<!-- APPEARANCE -->
+		<h3 id="menu_appearance" style="display: none;"><span data-i18n="">pointcloud</span></h3>
+		<div>
+			<ul class="pv-menu-list">
+				<li style="display: none;"><span data-i18n="appearance.nb_max_pts"></span>: <span id="lblPointBudget"></span> <div id="sldPointBudget"></div></li>
+				<li style="display: none;"><span data-i18n="appearance.field_view"></span>: <span id="lblFOV"></span><div id="sldFOV"></div></li>
+
+	
+				<li style="display: none;"><label><input type="checkbox" id="chkEDLEnabled"/><span data-i18n="appearance.edl_enable"></span></label></li>
+				<li style="display: none;"><span data-i18n="appearance.edl_radius"></span>: <span id="lblEDLRadius"></span><div id="sldEDLRadius"></div></li>
+				<li style="display: none;"><span data-i18n="appearance.edl_strength"></span>: <span id="lblEDLStrength"></span><div id="sldEDLStrength"></div></li>
+				<li style="display: none;"><span data-i18n="appearance.edl_opacity"></span>: <span id="lblEDLOpacity"></span><div id="sldEDLOpacity"></div></li>
+			
+			</ul>
+			
+		</div>
+		
+		<!-- TOOLS -->
+		<h3 id="menu_tools"><span data-i18n="">Measurement & Clipping</span></h3>
+		<div class="pv-menu-list">
+
+			<li id="tools"></li>
+
+
+
+			<li id="clipping_tools"></li>
+
+			<li>
+				<selectgroup id="cliptask_options">
+					<option id="cliptask_options_none" value="NONE">None</option>
+					<option id="cliptask_options_highlight" value="HIGHLIGHT">Highlight</option>
+					<option id="cliptask_options_show_inside" value="SHOW_INSIDE">Inside</option>
+					<option id="cliptask_options_show_outside" value="SHOW_OUTSIDE">Outside</option>
+				</selectgroup>
+			</li>
+
+			<li id="navigation"></li>
+
+			<li>
+				<selectgroup id="clipmethod_options" style="display: none;">
+					<option id="clipmethod_options_any" value="INSIDE_ANY">Inside Any</option>
+					<option id="clipmethod_options_all" value="INSIDE_ALL">Inside All</option>
+				</selectgroup>
+			</li>
+
+		</div>
+
+		<!-- SCENE -->
+		<h3 id="menu_scene" style="display: none;"><span data-i18n="">Properties</span></h3>
+		<div class="pv-menu-list">
+
+			<div id="scene_export" style="display: none;"></div>
+
+			<div class="divider" style="display: none;"><span>Objects</span></div>
+
+			<div id="scene_objects" style="display: none;"></div>
+
+			<div class="divider"><span>Properties</span></div>
+
+			<div id="scene_object_properties"></div>
+		</div>
+
+		<!-- Classification -->
+		<h3 id="menu_filters"><span data-i18n="tb.filters_opt"></span></h3>
+		<div>
+
+			<div class="divider" style="display: none;"><span>Classification</span></div>
+
+			<ul id="classificationList" class="pv-menu-list"></ul>
+
+			<!-- <div class="divider"><span>Returns</span></div> -->
+
+			<div id="return_filter_panel" style="display: none;">
+				<ul class="pv-menu-list">
+					
+					<li><span data-i18n="filters.return_number"></span>: <span id="lblReturnNumber"></span> <div id="sldReturnNumber"></div></li>
+					<li><span data-i18n="filters.number_of_returns"></span>: <span id="lblNumberOfReturns"></span> <div id="sldNumberOfReturns"></div></li>
+
+				</ul>
+			</div>
+
+			<!-- <div class="divider"><span>Point Source ID</span></div> -->
+
+			<div>
+				<ul class="pv-menu-list" id="pointsourceid_filter_panel" style="display: none;">
+
+				</ul>
+			</div>
+
+			<!-- <div class="divider"><span>GPS Time</span></div> -->
+
+			<!-- <div id="gpstime_filter_panel" style="display: none;">
+
+				<ul class="pv-menu-list">
+					<div id="gpstime_multilevel_range_container">
+
+						<li>
+							<span style="display: flex">
+								<span>Time: </span>
+								<input id="txtGpsTime" type="text" style="margin: auto 10px"/>
+								<input id="btnFindGpsTime" type="button" value="find" />
+							</span>
+						</li>
+
+					</div>
+
+				</ul>
+
+			</div> -->
+		</div>
+		
+		<!-- ABOUT -->
+		<!-- <h3 id="menu_about"><span data-i18n="tb.about_opt" ></span></h3>
+		<div>
+			<ul class="pv-menu-list">
+				<li><a href="http://potree.org" target="_blank">Potree</a> is a viewer for large point cloud / LIDAR data sets, developed at the Vienna University of Technology. 
+				<a href="https://github.com/potree/potree" target="_blank">(github)</a>
+				</li>
+				<li>Author: <a href="mailto:mschuetz@potree.org">Markus Sch&uuml;tz</a></li>
+				<li>License: <a target="_blank" href="http://potree.org/wp/license/">FreeBSD (2-clause BSD)<a></li>
+				<li>Libraries:
+					<ul>
+						<li><a target="_blank" href="https://cesium.com/">Cesium</a></li>
+						<li><a target="_blank" href="https://d3js.org/">D3.js</a></li>
+						<li><a target="_blank" href="https://entwine.io/entwine-point-tile.html/">Entwine / EPT</a></li>
+						<li><a target="_blank" href="https://github.com/ngageoint/geopackage-js/">geopackage-js</a></li>
+						<li><a target="_blank" href="https://www.i18next.com/">i18next</a></li>
+						<li><a target="_blank" href="https://jquery.com/">Jquery</a></li>
+						<li><a target="_blank" href="https://jqueryui.com/">jQuery user interface</a></li>
+						<li><a target="_blank" href="https://www.jstree.com/">jstree</a></li>
+						<li><a target="_blank" href="https://www.clicktorelease.com/code/THREE.MeshLine/demo/index.html/">MeshLine</a></li>
+						<li><a target="_blank" href="http://openlayers.org/">OpenLayers3</a></li>
+						<li><a target="_blank" href="https://eloquentjavascript.net/1st_edition/appendix2.html/">BinaryHeap</a></li>
+						<li><a target="_blank" href="https://github.com/dataarts/dat.gui/">dat.gui</a></li>
+						<li><a target="_blank" href="https://github.com/mrdoob/stats.js/">stats.js</a></li>
+						<li><a target="_blank" href="https://github.com/verma/plasio">Plas.io (laslaz) </a></li>
+						<li><a target="_blank" href="http://proj4js.org/">proj4js</a></li>
+						<li><a target="_blank" href="https://github.com/mbostock/shapefile/">shapefile</a></li>
+						<li><a target="_blank" href="http://bgrins.github.io/spectrum/">Spectrum</a></li>
+						<li><a target="_blank" href="https://github.com/sql-js/sql.js/">sql.js</a></li>
+						<li><a target="_blank" href="http://threejs.org/">three.js</a></li>
+						<li><a target="_blank" href="https://github.com/tweenjs/tween.js/">tween</a></li>
+						<li><a target="_blank" href="http://www.laszip.org/">laszip</a></li>
+
+					</ul>
+				</li>
+				<li>Donators:
+					<ul>
+						<li><a target="_blank" href="http://www.ne.ch/autorites/DDTE/SGRF/SITN/Pages/accueil.aspx/">SITN</a></li>
+						<li><a target="_blank" href="http://www.synth3d.co/">Synth3D</a></li>
+						<li><a target="_blank" href="http://www.geocue.com/">GeoCue</a></li>
+						<li><a target="_blank" href="http://rapidlasso.com/">rapidlasso</a></li>
+
+						<li><a target="_blank" href="https://www.bart.gov/">BART</a></li>
+
+						<li><a target="_blank" href="https://georepublic.info/en/">georepublic</a></li>
+
+						<li><a target="_blank" href="http://www.helimap.com">Helimap</a></li>
+						<li><a target="_blank" href="http://www.vevey.ch">Vevey</a></li>
+						<li><a target="_blank" href="https://www.yverdon-les-bains.ch">Yverdon-les-Bains</a></li>
+						<li><a target="_blank" href="http://archpro.lbg.ac.at/">LBI ArchPro</a></li>
+						<li><a target="_blank" href="http://www.kts.co.jp/">KTS</a></li>
+						<li><a target="_blank" href="http://www.veesus.com/veesus/index.php">Veesus</a></li>
+						<li><a target="_blank" href="http://sigeom.ch/">sigeom sa</a></li>
+					</ul>
+				</li>
+				<li>Credits:
+					<ul>
+						<li><a target="_blank" href="https://www.cg.tuwien.ac.at/staff/MichaelWimmer.html">Michael Wimmer</a> & 
+							<a target="_blank" href="https://www.cg.tuwien.ac.at/staff/ClausScheiblauer.html">Claus Scheiblauer</a></li>
+						<li><a target="_blank" href="https://www.cg.tuwien.ac.at/">TU Wien, Insitute of Computer Graphics and Algorithms</a></li>
+						<li><a target="_blank" href="https://harvest4d.org/">Harvest4D</a></li>
+						<li><a target="_blank" href="http://rapidlasso.com/">rapidlasso</a></li>
+						<li><a target="_blank" href="https://georepublic.info/en/">georepublic</a></li>
+						<li><a target="_blank" href="http://hobu.co/">Howard Butler, Uday Verma, Connor Manning</a></li>
+						<li><a target="_blank" href="http://www.danielgm.net/cc/">Cloud Compare</a></li>
+						<li><a target="_blank" href="http://sitn.ne.ch/">sitn</a></li>
+					</ul>
+				</li>
+			
+			</ul>
+		</div> -->
+
+	</div>
+
+	<div>
+			<br>
+			<br>
+			<br>
+			<br>
+			<br>
+			<br>
+			<br>
+			<br>
+			<br>
+			<br>
+			<br>
+			<br>
+			<br>
+		</div>
+	</div>
+	
+</div>
+
+
