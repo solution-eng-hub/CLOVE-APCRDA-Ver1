@@ -1,6 +1,8 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders  } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { HttpClientModule } from '@angular/common/http';
+import { Path } from 'three';
 
 
 @Injectable({
@@ -10,7 +12,7 @@ import { Observable } from 'rxjs';
 
 export class ApiFetchService {
 
-  private apiUrl = 'http://10.91.89.80:3003';
+  private apiUrl = 'http://10.91.89.91:3003';
   private saltKey = 'Clove@$martCity';
 
   constructor(private http: HttpClient) {}
@@ -36,5 +38,28 @@ export class ApiFetchService {
         headers: this.getAuthHeaders()
       }
     );
+  }
+}
+
+
+
+@Injectable({
+  providedIn: 'root'
+})
+
+export class JsonFetchService {
+
+  private Base_dir = './repos/';
+
+  constructor(private http: HttpClient) {}
+  
+  agcFolders: string[] = [];
+  
+  get_fetch_dirs(subDir: string): { observable: Observable<string[]>, baseDir: string } {
+    const tmp_path = this.Base_dir + subDir + "/data.json";
+    return {
+      observable: this.http.get<string[]>(tmp_path),
+      baseDir: this.Base_dir
+    };
   }
 }

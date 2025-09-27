@@ -1,3 +1,4 @@
+
 body {
 	width: 100vw;
 	height: 100vh;
@@ -229,6 +230,12 @@ body {
 	animation: check-15 0.6s ease;
 }
 
+.checkbox-wrapper-15 .inp-cbx:disabled+.cbx span:first-child {
+	border-color: #8f8f8f;
+	background: #8d8d8d;
+	cursor: not-allowed;
+}
+
 .checkbox-wrapper-15 .inp-cbx:checked+.cbx span:first-child svg {
 	stroke-dashoffset: 0;
 }
@@ -298,7 +305,7 @@ body {
 	display: inline-block;
 	cursor: pointer;
 	padding: 2px 20px;
-	background-color: #fff0;
+	background-color: #777;
 	border: 1px solid #4D4D4D;
 	border-radius: 28px;
 	color: white;
@@ -334,35 +341,25 @@ body {
 	color: #fff;
 }
 
+.btn_hover:hover {
+	background-color: rgb(247, 132, 90);
+}
+
 .btn_hover:hover .lower_text {
 	transform: translateY(0);
 	color: #fff;
 }
 
-#offcanvasRightFeatures {
-	width: 15em;
-	height: 100vh;
-	max-height: 100vh;
-	transition: all 0.5s ease;
+.modal-footer {
+	display: block !important;
+	width: 5.5em;
+	padding: 0 !important;
+	align-items: center;
+	height: 85%;
+	margin-top: 4em;
+	margin-left: 1em;
+	overflow: auto;
 }
-
-#offcanvasRightFeatures.raised {
-	max-height: 80vh;
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

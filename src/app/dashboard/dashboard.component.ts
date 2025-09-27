@@ -1,5 +1,6 @@
 import { Component, OnInit, AfterViewInit, ViewChild, TemplateRef } from '@angular/core';
 import { Viewer, ProviderViewModel, Cesium3DTileset, OpenStreetMapImageryProvider, buildModuleUrl } from 'cesium';
+import { DomSanitizer, SafeHtml, SafeResourceUrl } from '@angular/platform-browser';
 
 // import { Cesium3DTileset } from 'cesium/Source/Scene/Cesium3DTileset';
 import * as Cesium from 'cesium';
@@ -19,7 +20,8 @@ interface FileListResponse {
 }
 
 // /// /// DB Fetch from Service API
-import { ApiFetchService } from '../services/api-fetch.service';
+import { ApiFetchService, JsonFetchService } from '../services/api-fetch.service';
+
 
 
 
@@ -42,7 +44,10 @@ export class DashboardComponent {
     groupedProjects: any[] = [];
 
 
-    constructor(private apiFetchService: ApiFetchService) {}
+    constructor(private apiFetchService: ApiFetchService, private jsonFetchService: JsonFetchService, private sanitizer: DomSanitizer) {
+        this.safeBimUrl = this.sanitizer.bypassSecurityTrustResourceUrl(this.selectedModel);
+        this.safeCctvUrl = this.sanitizer.bypassSecurityTrustResourceUrl(this.cctvUrl);
+    }
 
     selectedAction: string = "None"; // Initialize selectedAction
 
@@ -59,8 +64,10 @@ export class DashboardComponent {
     button4: HTMLButtonElement | null = null;
     button5: HTMLButtonElement | null = null;
 
-    buttonsVisible: boolean = false; 
+    buttonsVisible: boolean = false;
     ModelHoverFeatures: string[] = ['Project', 'Building', 'Floor'];
+    folders: any[] = [];
+
 
     points: Cesium.PointPrimitiveCollection | undefined;
     polylines: Cesium.PolylineCollection | undefined;
@@ -105,12 +112,28 @@ export class DashboardComponent {
     loadedJsonLayers = new Map<string, Cesium.GeoJsonDataSource>();
     terrainEnabled = false;
     defaultTerrain: any
+    loadedAgcTilesets = new Map();
+
+    safeBimUrl: SafeResourceUrl;
+    safeCctvUrl: SafeResourceUrl;
+    selectedModel: string = 'https://autode.sk/46mcB9j';
+    cctvUrl: string = 'https://autode.sk/';
+    modalContent: SafeHtml | string = '';
+    selectedModelVideo: string = "Amaravati_demo"
+    images: string[] = [
+        'repos/tab_images/Amaravati Infra.webp',
+        'repos/tab_images/DMPRoads.webp',
+        'repos/tab_images/Lands.webp',
+
+    ];
+    activeIndex = 0;
 
     dataVill = {
         "ortho": ["Kuragallu", "Krishnayyapalem", "Mangalagiri", "Nidamarru", "Nowluru"],
         "dem": ["Mangalagiri"],
         "model": ["road", "happyNest"],
-        "geo": ["Capital City Layers", 'Amaravati Infra', "Lands", 'PlanningBoundary', 'Forests', 'Planning Boundaries', 'Transportation', 'DMPRoads']
+        "geo": ["Capital City Layers", 'Amaravati Infra', "Lands", 'PlanningBoundary', 'Forests', 'Planning Boundaries', 'Transportation', 'DMPRoads'],
+        "agc": ["Base", "Buildings"]
     };
 
 
@@ -199,11 +222,12 @@ export class DashboardComponent {
 
         // this.dynamicTilesetLoaderFromDb(this.viewer);
         this.dynamic_load_models_from_db();
+
+        // this.Load_AGC_models();
     }
 
 
-    dynamic_load_models_from_db()
-    {
+    dynamic_load_models_from_db() {
         this.Get_all_projects_List();
     }
 
@@ -211,12 +235,12 @@ export class DashboardComponent {
     Get_all_projects_List() {
         console.log("Get_all_projects_List Get_all_projects_List Get_all_projects_List")
         this.apiFetchService.get_list_projs().subscribe({
-            next: (response:any) => {
+            next: (response: any) => {
                 console.log('Data received:', response);
                 this.lst_projects = response;
                 this.groupedProjects = this.groupByProjectName(response.data);
             },
-            error: (err:any) => {
+            error: (err: any) => {
                 console.error('Error fetching data:', err);
             }
         });
@@ -399,6 +423,7 @@ export class DashboardComponent {
 
 
     populateVillageTabs(data: any) {
+        console.log(data, "datadatadata")
         Object.entries(data).forEach(([key, villages]) => {
             const tabContainer = document.getElementById(`pills-${key}`);
             if (!tabContainer) return; // Skip if tab not found
@@ -406,6 +431,7 @@ export class DashboardComponent {
             tabContainer.innerHTML = ''; // Clear previous content
             if (Array.isArray(villages)) {
                 villages.forEach((village: string) => {
+                    console.log(`"${key}-${village}"`)
                     const labelHTML = `
                     <label class="eachVill" for="${key}-${village}">
                         <div class="checkbox-wrapper-15 villCheck">
@@ -469,6 +495,12 @@ export class DashboardComponent {
             this.loadGeoJsonData()
         });
 
+        $(document).on('change', '#pills-agc .inputVallagesCheck', async (event: JQuery.ChangeEvent) => {
+            const allChecked: boolean = $('#pills-agc .inputVallagesCheck:checked').length === $('#pills-agc .inputVallagesCheck').length;
+            $('#selectAllVill').prop('checked', allChecked);
+            this.Load_AGC_models()
+        });
+
 
 
 
@@ -497,7 +529,11 @@ export class DashboardComponent {
                     break;
                 case 'pills-geo':
                     this.loadGeoJsonData();
-                    console.log('geo all tab clicked', isChecked)
+                    // console.log('geo all tab clicked', isChecked)
+                    break;
+                case 'pills-agc':
+                    this.Load_AGC_models();
+                    // console.log('agc all tab clicked', isChecked)
                     break;
                 default:
                     console.log('Unknown tab:', tabId);
@@ -901,7 +937,7 @@ export class DashboardComponent {
 
         for (const item of data) {
             // Clean and format the project name
-            
+
             const rawName = item.project_name?.trim();
             //const formattedName = rawName.replace(/\s+/g, ''); // Remove all spaces (e.g., "Happy Nest" -> "HappyNest")
 
@@ -914,9 +950,9 @@ export class DashboardComponent {
 
         result.forEach(ech_prop => {
             let sub_prj_repos = ech_prop.length > 1 ? ech_prop : [];
-            this.groupedProjects.push({  "Project": ech_prop[0].project_name, "prj_id": ech_prop[0].prj_id,  "Subproject": sub_prj_repos })
+            this.groupedProjects.push({ "Project": ech_prop[0].project_name, "prj_id": ech_prop[0].prj_id, "Subproject": sub_prj_repos })
         });
-        
+
         return this.groupedProjects;
     }
 
@@ -940,89 +976,129 @@ export class DashboardComponent {
         allVillages.forEach((villageName: string) => {
             const isChecked: boolean = checkedVillages.includes(villageName);
 
-            if (isChecked) {
-                // Load or show the layer
-                // console.log(villageName);
-          
+            // if (isChecked) {
+            //     // Load or show the layer
+            //     // console.log(villageName);
 
-                if (villageName == 'happyNest') {
-                    console.log('ergh')
+
+            //     if (villageName == 'happyNest') {
+            //         console.log('ergh')
+            //         happyNest.forEach((eachBlock) => {
+            //             let block = 'happyNest/' + eachBlock
+            //             this.loadModelTilesetFolder(block, eachBlock, villageName)
+            //         });
+            //         this.buttonsVisible = true;
+            //     } else {
+            //         this.loadModelTilesetFolder(villageName, "NA", villageName)
+            //     }
+
+            // } else {
+            //     // Hide the layer if it exists
+            //     if (this.loadedModelTilesets.has(villageName)) {
+            //         const tileset = this.loadedModelTilesets.get(villageName);
+            //         if (tileset) {
+            //             tileset.show = false;
+
+            //             this.viewer!.imageryLayers.remove(tileset, true); // remove the layer and destroy it
+            //             this.loadedModelTilesets.delete(villageName);
+            //         }
+            //     }
+            // }
+
+
+            if (isChecked) {
+                if (villageName === 'happyNest') {
+                    console.log('ergh');
                     happyNest.forEach((eachBlock) => {
-                        let block = 'happyNest/' + eachBlock
-                        this.loadModelTilesetFolder(block, eachBlock, villageName)
+                        let block = `happyNest/${eachBlock}`;
+                        this.loadModelTilesetFolder(block, eachBlock, villageName);
                     });
                     this.buttonsVisible = true;
                 } else {
-                    this.loadModelTilesetFolder(villageName, "NA", villageName)
+                    this.loadModelTilesetFolder(villageName, "NA", villageName);
                 }
-
             } else {
-                // Hide the layer if it exists
-                if (this.loadedModelTilesets.has(villageName)) {
-                    const tileset = this.loadedModelTilesets.get(villageName);
-                    if (tileset) {
-                        tileset.show = false;
+                // Hide or remove the tileset(s)
+                if (villageName === 'happyNest') {
+                    // Special handling for happyNest blocks
+                    happyNest.forEach((eachBlock) => {
+                        let block = `happyNest/${eachBlock}`;
+                        if (this.loadedModelTilesets.has(block)) {
+                            const tileset = this.loadedModelTilesets.get(block);
+                            if (tileset) {
+                                tileset.show = false;
+ 
+                                this.viewer!.imageryLayers.remove(tileset, true); // remove the layer and destroy it
+                                this.loadedModelTilesets.delete(villageName);
+                            }
+                        }
+                    });
+                } else {
+                    if (this.loadedModelTilesets.has(villageName)) {
+                        const tileset = this.loadedModelTilesets.get(villageName);
+                        if (tileset) {
+                            tileset.show = false;
 
-                        this.viewer!.imageryLayers.remove(tileset, true); // remove the layer and destroy it
-                        this.loadedModelTilesets.delete(villageName);
+                            this.viewer!.imageryLayers.remove(tileset, true); // remove the layer and destroy it
+                            this.loadedModelTilesets.delete(villageName);
+                        }
                     }
                 }
             }
+ 
         });
 
     }
 
     onBlockButtonClick(HvrFeatureName: string) {
-            
+
         console.log(this, "----", HvrFeatureName)
 
         this.setupBuildingHover(HvrFeatureName);
     }
 
 
-    private setupBuildingHover(HvrFeatureName : String): void {
+    private setupBuildingHover(HvrFeatureName: String): void {
         let lastFeature: Cesium.Cesium3DTileFeature | null = null;
 
         const handler = new Cesium.ScreenSpaceEventHandler(this.viewer!.scene.canvas);
 
-      
+
 
         handler.setInputAction((movement: any) => {
             const pickedFeature = this.viewer!.scene.pick(movement.endPosition);
 
             // const pickedObject = this.viewer.scene.pick(click.position);
- 
+
             if (Cesium.defined(pickedFeature) && pickedFeature instanceof Cesium.Cesium3DTileFeature) {
 
-            const propertyIds = pickedFeature.getPropertyIds();
+                const propertyIds = pickedFeature.getPropertyIds();
 
-            console.log(pickedFeature, "--------", propertyIds)
+                console.log(pickedFeature, "--------", propertyIds)
 
-            // Reset previous building color
-            if (lastFeature && (!pickedFeature || pickedFeature !== lastFeature)) {
-                lastFeature.color = Cesium.Color.WHITE;
-                lastFeature = null;
-            }
-            
-            if(HvrFeatureName == "Project")
-            {
-
-            }
-            else if(HvrFeatureName == "Building")
-            {
-
-            }
-            else{
-                 // Highlight current building
-                if (pickedFeature instanceof Cesium.Cesium3DTileFeature) {
-                    pickedFeature.color = Cesium.Color.YELLOW.withAlpha(0.8); // highlight
-                    lastFeature = pickedFeature;
+                // Reset previous building color
+                if (lastFeature && (!pickedFeature || pickedFeature !== lastFeature)) {
+                    lastFeature.color = Cesium.Color.WHITE;
+                    lastFeature = null;
                 }
-             
-            }
-        }
 
-            
+                if (HvrFeatureName == "Project") {
+
+                }
+                else if (HvrFeatureName == "Building") {
+
+                }
+                else {
+                    // Highlight current building
+                    if (pickedFeature instanceof Cesium.Cesium3DTileFeature) {
+                        pickedFeature.color = Cesium.Color.YELLOW.withAlpha(0.8); // highlight
+                        lastFeature = pickedFeature;
+                    }
+
+                }
+            }
+
+
 
         }, Cesium.ScreenSpaceEventType.MOUSE_MOVE);
     }
@@ -1041,7 +1117,7 @@ export class DashboardComponent {
         }
         const tilesetUrl = `./repos/models/${modelName}/tileset.json`;
         const tileset = await Cesium.Cesium3DTileset.fromUrl(tilesetUrl);
-        
+
         this.loadedModelTilesets.set(modelName, tileset);
         this.viewer!.scene.primitives.add(tileset);
         tileset.show = true;
@@ -1056,16 +1132,93 @@ export class DashboardComponent {
 
     // Geo Json Loading Start--------------------------------
 
+    // async loadGeoJsonData() {
+    //     const data: { [key: string]: string[] } = {
+    //         "Capital City Layers": ["AGCBoundary_-_AGCBoundary", "Amaravati_Trunk_Road_Network_-_Amaravati_Trunk_Road_Network", "Capital_Planning_Boundary_-_Capital_Planning_Boundary", "Land_for_Monetization_-_Land_for_Monetization", "Land_Mortagaged_to_Hudco_-_Land_Mortagaged_to_Hudco", "Land_Under_R5_Zone_-_Land_Under_R5_Zone", "Survey_Parcels_-_Survey_Parcels"],
+    //         "Amaravati Infra": ["Flood_Mitigation_-_Flood_Mitigation", "Flood_Pumping_Stations_-_Flood_Pumping_Stations"],
+    //         "Lands": ["Available_Lands_-_Available_Lands", "Land_Allotments_-_Land_Allotments", "LA_-_LA"],
+    //         "PlanningBoundary": ["AGCPlanningBoundary_-_AGCPlanningBoundary", "AmaravatiPlanningBoundary_-_AmaravatiPlanningBoundary", "Block_-_Block", "Colony_-_Colony", "LPSZones_-_LPSZones", "Sector_-_Sector", "SeedCapitalBoundary_-_SeedCapitalBoundary", "SurveyParcelBoundaries_-_SurveyParcelBoundaries", "ThemeCities_-_ThemeCities", "Township_-_Township", "VillageBoundary_-_VillageBoundary"],
+    //         "Forests": ["CRDAForests_-_CRDAForests", "Forestsoutside_CRDA_-_Forestsoutside_CRDA", "Forest_CC_-_Forest_CC"],
+    //         "Planning Boundaries": ["APCRDADistricts_-_APCRDADistricts", "APCRDAMandals_-_APCRDAMandals", "APCRDAPlanning_Boundary_-_APCRDAPlanning_Boundary", "APCRDAPlanning_Zones_-_APCRDAPlanning_Zones", "APCRDAULB_-_APCRDAULB", "APCRDAVillages_-_APCRDAVillages", "APCRDAZDPZones_-_APCRDAZDPZones"],
+    //         "Transportation": ["APCRDA_GAS_-_APCRDA_GAS", "APCRDA_HT_LINES_-_APCRDA_HT_LINES", "DraftBKVHighway_-_DraftBKVHighway", "DraftORR_-_DraftORR", "IRR_-_IRR"]
+    //     };
+
+    //     const checkedLayers: string[] = $('#pills-geo .inputVallagesCheck:checked')
+    //         .map(function () {
+    //             return $(this).data('village') as string;
+    //         })
+    //         .get();
+
+    //     const allLayers: string[] = $('#pills-geo .inputVallagesCheck')
+    //         .map(function () {
+    //             return $(this).data('village') as string;
+    //         })
+    //         .get();
+
+    //     // 1. Handle unchecked layers → hide or remove
+    //     for (const eachLayer of allLayers) {
+    //         if (!checkedLayers.includes(eachLayer)) {
+    //             const datafolder = data[eachLayer as keyof typeof data];
+    //             if (!datafolder) {
+    //                 continue;
+    //             }
+    //             for (const element of datafolder) {
+    //                 if (this.loadedJsonLayers.has(element)) {
+    //                     const existingDataSource = this.loadedJsonLayers.get(element);
+    //                     if (existingDataSource) {
+    //                         // Hide it using the show property
+    //                         existingDataSource.show = false;
+    //                         // Optionally: remove completely:
+    //                         this.viewer!.dataSources.remove(existingDataSource, true);
+    //                         this.loadedJsonLayers.delete(element);
+    //                     }
+    //                 }
+    //             }
+    //         }
+    //     }
+
+    //     // 2. Handle checked layers → show or load
+    //     for (const layer of checkedLayers) {
+    //         const datafolder = data[layer as keyof typeof data];
+    //         // console.log("Layer:", layer, "→ Files:", datafolder);
+
+    //         if (!datafolder) {
+    //             alert(`No geojson dat found for this "${layer}"`);
+    //             continue;
+    //         }
+
+    //         for (const element of datafolder) {
+    //             console.log("  Handling element:", element);
+    //             const geoJsonUrl = `/repos/JSON/${layer}/${element}.geojson`;
+
+    //             if (this.loadedJsonLayers.has(element)) {
+    //                 const existingDataSource = this.loadedJsonLayers.get(element);
+    //                 if (existingDataSource) {
+    //                     existingDataSource.show = true;
+    //                     // Already loaded, so show and skip loading again
+    //                     continue;
+    //                 }
+    //             }
+
+    //             // Not loaded yet — load it now
+    //             try {
+    //                 const dataSource = await Cesium.GeoJsonDataSource.load(geoJsonUrl);
+    //                 dataSource.name = element;
+    //                 await this.viewer!.dataSources.add(dataSource);
+    //                 this.viewer!.zoomTo(dataSource.entities);
+    //                 this.loadedJsonLayers.set(element, dataSource);
+    //             } catch (error) {
+    //                 console.error(`Error loading GeoJSON for ${element} from ${geoJsonUrl}:`, error);
+    //             }
+    //         }
+    //     }
+    // }
+
     async loadGeoJsonData() {
-        const data: { [key: string]: string[] } = {
-            "Capital City Layers": ["AGCBoundary_-_AGCBoundary", "Amaravati_Trunk_Road_Network_-_Amaravati_Trunk_Road_Network", "Capital_Planning_Boundary_-_Capital_Planning_Boundary", "Land_for_Monetization_-_Land_for_Monetization", "Land_Mortagaged_to_Hudco_-_Land_Mortagaged_to_Hudco", "Land_Under_R5_Zone_-_Land_Under_R5_Zone", "Survey_Parcels_-_Survey_Parcels"],
-            "Amaravati Infra": ["Flood_Mitigation_-_Flood_Mitigation", "Flood_Pumping_Stations_-_Flood_Pumping_Stations"],
-            "Lands": ["Available_Lands_-_Available_Lands", "Land_Allotments_-_Land_Allotments", "LA_-_LA"],
-            "PlanningBoundary": ["AGCPlanningBoundary_-_AGCPlanningBoundary", "AmaravatiPlanningBoundary_-_AmaravatiPlanningBoundary", "Block_-_Block", "Colony_-_Colony", "LPSZones_-_LPSZones", "Sector_-_Sector", "SeedCapitalBoundary_-_SeedCapitalBoundary", "SurveyParcelBoundaries_-_SurveyParcelBoundaries", "ThemeCities_-_ThemeCities", "Township_-_Township", "VillageBoundary_-_VillageBoundary"],
-            "Forests": ["CRDAForests_-_CRDAForests", "Forestsoutside_CRDA_-_Forestsoutside_CRDA", "Forest_CC_-_Forest_CC"],
-            "Planning Boundaries": ["APCRDADistricts_-_APCRDADistricts", "APCRDAMandals_-_APCRDAMandals", "APCRDAPlanning_Boundary_-_APCRDAPlanning_Boundary", "APCRDAPlanning_Zones_-_APCRDAPlanning_Zones", "APCRDAULB_-_APCRDAULB", "APCRDAVillages_-_APCRDAVillages", "APCRDAZDPZones_-_APCRDAZDPZones"],
-            "Transportation": ["APCRDA_GAS_-_APCRDA_GAS", "APCRDA_HT_LINES_-_APCRDA_HT_LINES", "DraftBKVHighway_-_DraftBKVHighway", "DraftORR_-_DraftORR", "IRR_-_IRR"]
-        };
+        $('#selectAllVill').prop('disabled', true);
+        const inputJson = await fetch('repos/geojson_map.json');
+
+        const data: { [key: string]: string[] } = await inputJson.json();
 
         const checkedLayers: string[] = $('#pills-geo .inputVallagesCheck:checked')
             .map(function () {
@@ -1107,13 +1260,13 @@ export class DashboardComponent {
             // console.log("Layer:", layer, "→ Files:", datafolder);
 
             if (!datafolder) {
-                alert(`No geojson dat found for this "${layer}"`);
+                // alert(`No geojson dat found for this "${layer}"`);
                 continue;
             }
 
             for (const element of datafolder) {
-                console.log("  Handling element:", element);
-                const geoJsonUrl = `/repos/JSON/${layer}/${element}.geojson`;
+                // console.log("  Handling element:", element);
+                const geoJsonUrl = `.//repos/JSON_data/${layer}/${element}`;
 
                 if (this.loadedJsonLayers.has(element)) {
                     const existingDataSource = this.loadedJsonLayers.get(element);
@@ -1125,25 +1278,78 @@ export class DashboardComponent {
                 }
 
                 // Not loaded yet — load it now
+                // try {
+                //     const dataSource = await Cesium.GeoJsonDataSource.load(geoJsonUrl);
+                //     dataSource.name = element;
+                //     await this.viewer!.dataSources.add(dataSource);
+                //     this.viewer!.zoomTo(dataSource.entities);
+                //     this.loadedJsonLayers.set(element, dataSource);
+                // } catch (error) {
+                //     console.error(`Error loading GeoJSON for ${element} from ${geoJsonUrl}:`, error);
+                // }
+
                 try {
-                    const dataSource = await Cesium.GeoJsonDataSource.load(geoJsonUrl);
-                    dataSource.name = element;
+
+                    const response = await fetch(geoJsonUrl);
+                    const geoJson = await response.json();
+
+                    const defaultColor = geoJson.color || '#eaf182ff';
+
+
+                    const dataSource = await Cesium.GeoJsonDataSource.load(geoJson);
+                    const fillColor = Cesium.Color.fromCssColorString(defaultColor).withAlpha(0.2);
+                    // console.log(geoJsonUrl, defaultColor,fillColor)
+                    dataSource.entities.values.forEach(entity => {
+                        if (entity.polygon) {
+                            entity.polygon.material = new Cesium.ColorMaterialProperty(fillColor);
+                            // entity.polygon.outline = true;
+
+                            entity.polygon.outlineColor = new Cesium.ConstantProperty(fillColor.withAlpha(0.6));
+
+                            // Optional: outline width (default is 1)
+                            entity.polygon.outlineWidth = new Cesium.ConstantProperty(1);
+                        }
+                    });
+
                     await this.viewer!.dataSources.add(dataSource);
-                    this.viewer!.zoomTo(dataSource.entities);
+                    await this.viewer!.zoomTo(dataSource.entities);
                     this.loadedJsonLayers.set(element, dataSource);
+
                 } catch (error) {
                     console.error(`Error loading GeoJSON for ${element} from ${geoJsonUrl}:`, error);
                 }
+
             }
         }
+        $('#selectAllVill').prop('disabled', false);
     }
-
-
     // Geo Json Loading End--------------------------------
     //--------------------------------------------------------------------------------------------------------------------------------------
 
 
-    uncheckCheckedVillagesInDemTab(): void {
+    // uncheckCheckedVillagesInDemTab(): void {
+    //     $('#pills-dem .inputVallagesCheck:checked').each(function (): void {
+    //         (this as HTMLInputElement).checked = false;
+    //     });
+    //     this.viewer!.terrainProvider = new Cesium.EllipsoidTerrainProvider();
+    //     this.terrainEnabled = false;
+    //     this.viewer!.scene.globe.depthTestAgainstTerrain = false;
+    //     this.DEMloadedLayers.clear();
+    // }
+
+    // uncheckCheckedVillagesInOrthoTab(): void {
+    //     $('#pills-ortho .inputVallagesCheck:checked').each(function (): void {
+    //         (this as HTMLInputElement).checked = false;
+    //     });
+    //     // Remove existing layers
+    //     for (const [village, layer] of this.ortholoadedLayers) {
+    //         this.viewer!.imageryLayers.remove(layer, true);
+    //     }
+    //     this.ortholoadedLayers.clear();
+    // }
+
+
+uncheckCheckedVillagesInDemTab(): void {
         $('#pills-dem .inputVallagesCheck:checked').each(function (): void {
             (this as HTMLInputElement).checked = false;
         });
@@ -1163,9 +1369,6 @@ export class DashboardComponent {
         }
         this.ortholoadedLayers.clear();
     }
-
-
-
 
 
     private initializeOffcanvas(): void {
@@ -1192,12 +1395,80 @@ export class DashboardComponent {
     //     }
     // }
 
+openModal(type: string) {
+        this.safeBimUrl = this.sanitizer.bypassSecurityTrustResourceUrl(this.selectedModel);
+        this.safeCctvUrl = this.sanitizer.bypassSecurityTrustResourceUrl(this.cctvUrl);
+        this.modalContent = type;
+        // Show modal
+        const modalElement = document.getElementById('full_port_folio_pop');
+        const modal = new bootstrap.Modal(modalElement!);
+        modal.show();
+    }
 
 
+    selectImage(index: number) {
+        this.activeIndex = index;
 
-    tilesetClickToOpenRightCanvas() {
+        const carouselEl = document.getElementById('carouselImagesShow');
+        if (carouselEl) {
+            let carousel = bootstrap.Carousel.getInstance(carouselEl);
+            if (!carousel) {
+                carousel = new bootstrap.Carousel(carouselEl, {
+                    interval: false,
+                    ride: false
+                });
+            }
+            carouselEl.addEventListener('slid.bs.carousel', (event: any) => {
+                this.activeIndex = event.to;
+            });
+        }
+    }
+
+    ChangeSlide(btn: string) {
+        if (btn === 'next') {
+            if (this.images.length === 0) return;
+            this.activeIndex = (this.activeIndex + 1) % this.images.length;
+            this.moveToSlide(this.activeIndex);
+        } else if (btn === 'prev') {
+            if (this.images.length === 0) return;
+            this.activeIndex = (this.activeIndex - 1 + this.images.length) % this.images.length;
+            this.moveToSlide(this.activeIndex);
+        }
+    }
+
+    moveToSlide(index: number) {
+        const carouselEl = document.getElementById('carouselImagesShow');
+        if (carouselEl) {
+            const carousel = bootstrap.Carousel.getInstance(carouselEl);
+            if (carousel) {
+                carousel.to(index);
+            }
+        }
+    }
+
+
+    // tilesetClickToOpenRightCanvas() {
+    //     const handler = new Cesium.ScreenSpaceEventHandler(this.viewer!.scene.canvas);
+
+    //     handler.setInputAction((movement: any) => {
+    //         const pickedObject = this.viewer!.scene.pick(movement.position);
+
+    //         if (Cesium.defined(pickedObject)) {
+    //             // Check if the picked object is a Cesium3DTileset
+    //             if (pickedObject.primitive instanceof Cesium.Cesium3DTileset) {
+    //                 const tileset = pickedObject.primitive as Cesium.Cesium3DTileset;
+    //                 console.log('Clicked Tileset:', tileset);
+    //                 if (this.roffcanvasRightFertures) {
+    //                     this.roffcanvasRightFertures.show();
+    //                 }
+    //             }
+    //         }
+    //     }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
+    // }
+
+tilesetClickToOpenRightCanvas() {
         const handler = new Cesium.ScreenSpaceEventHandler(this.viewer!.scene.canvas);
-
+        let lastFeature: Cesium.Cesium3DTileFeature | null = null;
         handler.setInputAction((movement: any) => {
             const pickedObject = this.viewer!.scene.pick(movement.position);
 
@@ -1206,13 +1477,133 @@ export class DashboardComponent {
                 if (pickedObject.primitive instanceof Cesium.Cesium3DTileset) {
                     const tileset = pickedObject.primitive as Cesium.Cesium3DTileset;
                     console.log('Clicked Tileset:', tileset);
+                    // if (this.roffcanvasRightFertures) {
+                    //     this.roffcanvasRightFertures.show();
+                    // }
                     if (this.roffcanvasRightFertures) {
-                        this.roffcanvasRightFertures.show();
+                        this.roffcanvasRightFertures.toggle();
                     }
                 }
             }
         }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
+
+
+        handler.setInputAction((movement: any) => {
+            const pickedFeature = this.viewer!.scene.pick(movement.endPosition);
+
+            // Reset previous building color
+            if (lastFeature && (!pickedFeature || pickedFeature !== lastFeature)) {
+                lastFeature.color = Cesium.Color.WHITE; // reset back to original (adjust if needed)
+                lastFeature = null;
+            }
+
+            // Highlight current building
+            if (pickedFeature instanceof Cesium.Cesium3DTileFeature) {
+                pickedFeature.color = Cesium.Color.YELLOW.withAlpha(0.8); // highlight
+                lastFeature = pickedFeature;
+            }
+        }, Cesium.ScreenSpaceEventType.MOUSE_MOVE);
     }
+
+
+    //////// Load Amaravthi Capital Models
+
+    Load_AGC_models() {
+
+        const checkedLayers: string[] = $('#pills-agc .inputVallagesCheck:checked')
+            .map(function () {
+                return $(this).data('village') as string;
+            })
+            .get();
+
+        const allLayers: string[] = $('#pills-agc .inputVallagesCheck')
+            .map(function () {
+                return $(this).data('village') as string;
+            })
+            .get();
+        allLayers.forEach((ech_AGC_data: string) => {
+            const isChecked: boolean = checkedLayers.includes(ech_AGC_data);
+
+            console.log(checkedLayers, "is checkedddddd", isChecked)
+
+            if (isChecked) {
+                // Load or show the layer
+                console.log(ech_AGC_data, "ech_AGC_dataech_AGC_dataech_AGC_data", checkedLayers);
+
+                let url_of_mdl = '/AGC/' + ech_AGC_data;
+
+                const result = this.jsonFetchService.get_fetch_dirs(url_of_mdl);
+                result.observable.subscribe({
+                    next: (folderNames) => {
+                        folderNames.forEach((folderName) => {
+                            const fullPath = `${result.baseDir}${url_of_mdl}/${folderName}`;
+                            this.loaddynamicModelTilesetFolder(fullPath, ech_AGC_data, folderName);
+                        });
+                    },
+                    error: (err) => {
+                        console.error('Error fetching folders:', err);
+                    }
+                });
+            } else {
+                console.log(ech_AGC_data, "ech_AGC_data data deltessss", checkedLayers, "--------", this.loadedAgcTilesets)
+                // if (this.loadedAgcTilesets.has(ech_AGC_data)) {
+                //     console.log(ech_AGC_data, "ech_AGC_data data deltessss")
+                //     const tileset = this.loadedAgcTilesets.get(ech_AGC_data);
+                //     if (tileset) {
+                //         tileset.show = false;
+                        
+                //         this.viewer!.imageryLayers.remove(tileset, true); // remove the layer and destroy it
+                //         this.loadedAgcTilesets.delete(ech_AGC_data);
+                //     }
+                // }
+                const keysToRemove: string[] = [];
+ 
+                this.loadedAgcTilesets.forEach((tileset, key) => {
+                    if (key.startsWith(`/AGC/${ech_AGC_data}/`)) {
+                        this.viewer!.scene.primitives.remove(tileset);
+                        this.viewer!.imageryLayers.remove(tileset, true);
+                          this.viewer!.scene.primitives.remove(tileset);
+                        tileset.destroy?.();
+                        keysToRemove.push(key);
+                    }
+                });
+ 
+                keysToRemove.forEach((key) => this.loadedAgcTilesets.delete(key));
+            }
+ 
+            
+        })
+
+
+
+    }
+
+
+    async loaddynamicModelTilesetFolder(mdl_path: string, modelName: string, BldgName: string): Promise<void> {
+
+        if (this.loadedAgcTilesets.has(mdl_path)) {
+            const existingTileset = this.loadedAgcTilesets.get(mdl_path);
+            if (existingTileset) {
+                existingTileset.show = true;
+                this.viewer!.zoomTo(existingTileset); // Show the existing tileset
+                return;
+            }
+        }
+
+        const tilesetUrl = `${mdl_path}/tileset.json`;
+        const tileset = await Cesium.Cesium3DTileset.fromUrl(tilesetUrl);
+
+        this.loadedAgcTilesets.set(modelName, tileset);
+        console.log(this.loadedAgcTilesets, "this.loadedAgcTilesetsthis.loadedAgcTilesets")
+        this.viewer!.scene.primitives.add(tileset);
+        tileset.show = true;
+        (tileset as any).BldgName = BldgName;
+        this.viewer!.zoomTo(tileset);
+
+
+
+    }
+
 
 
 
