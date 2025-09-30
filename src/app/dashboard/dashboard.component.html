@@ -2,8 +2,8 @@
     <div class="loader"></div>
 </div>
 <div id="IFC_Vwr" style="position: absolute;"></div>
-<div  class="mainDashboardContainer" style="display: none;opacity: 0;">
-    
+<div class="mainDashboardContainer" style="display: none;opacity: 0;">
+
     <div class="top-center-search">
         <div class="search-wrapper">
             <svg class="search-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none"
@@ -48,7 +48,7 @@
                     data-bs-toggle="pill" data-bs-target="#pills-ortho" type="button" role="tab"
                     aria-controls="pills-home" aria-selected="false">
                     <img src="./assets/icons/pills_images/ortho.webp">
-                    <span>ortho</span>
+                    <span>ORTHO</span>
                 </button>
             </li>
             <li class="nav-item" role="presentation">
@@ -56,10 +56,10 @@
                     data-bs-toggle="pill" data-bs-target="#pills-dem" type="button" role="tab" aria-controls="pills-dem"
                     aria-selected="false">
                     <img src="./assets/icons/pills_images/dem.webp">
-                    <span>dem</span>
+                    <span>DEM</span>
                 </button>
             </li>
-            <li class="nav-item" role="presentation">
+            <li class="nav-item" role="presentation" style="display: none;">
                 <button class="eachFretureBtns btn btn-secondary" data-Serv="model" title="model" id="pills-model-tab"
                     data-bs-toggle="pill" data-bs-target="#pills-model" type="button" role="tab"
                     aria-controls="pills-model" aria-selected="false">
@@ -72,7 +72,7 @@
                     data-bs-toggle="pill" data-bs-target="#pills-geo" type="button" role="tab" aria-controls="pills-geo"
                     aria-selected="false">
                     <img src="./assets/icons/pills_images/jsonImg.webp">
-                    <span>geo</span>
+                    <span>GIS</span>
                 </button>
             </li>
             <li class="nav-item" role="presentation">
@@ -80,7 +80,7 @@
                     data-bs-toggle="pill" data-bs-target="#pills-agc" type="button" role="tab" aria-controls="pills-agc"
                     aria-selected="false">
                     <img src="./assets/icons/pills_images/agc.webp">
-                    <span>agc</span>
+                    <span>MODEL</span>
                 </button>
             </li>
         </ul>
@@ -111,6 +111,33 @@
             </div>
             <div class="selectAllLable"><label for="selectAllVill">Select all</label></div>
         </div>
+        <div class="dropdown-container" data-multi-select="false" id="multi_dropdown-container">
+            <div class="multi_dropdown-header">
+                <span class="dropdown-text">Select </span>
+                <span class="dropdown-arrow">▼</span>
+            </div>
+            <ul class="dropdown-list">
+                <li class="dropdown-item selected" data-value="AGC">AGC</li>
+                <li class="dropdown-item" data-value="Zone - 1A">Zone - 1A</li>
+                <li class="dropdown-item" data-value="Zone - 1B">Zone - 1B</li>
+                <li class="dropdown-item" data-value="Zone - 2A">Zone - 2A</li>
+                <li class="dropdown-item" data-value="Zone - 2B">Zone - 2B</li>
+                <li class="dropdown-item" data-value="Zone - 3A">Zone - 3A</li>
+                <li class="dropdown-item" data-value="Zone - 3B">Zone - 3B</li>
+                <li class="dropdown-item" data-value="Zone - 4">Zone - 4</li>
+                <li class="dropdown-item" data-value="Zone - 5A">Zone - 5A</li>
+                <li class="dropdown-item" data-value="Zone - 5C">Zone - 5C</li>
+                <li class="dropdown-item" data-value="Zone - 5B">Zone - 5B</li>
+                <li class="dropdown-item" data-value="Zone - 5D">Zone - 5D</li>
+                <li class="dropdown-item" data-value="Zone - 6">Zone - 6</li>
+                <li class="dropdown-item" data-value="Zone - 7">Zone - 7</li>
+                <li class="dropdown-item" data-value="Zone - 9">Zone - 9</li>
+                <li class="dropdown-item" data-value="Zone - 9A">Zone - 9A</li>
+                <li class="dropdown-item" data-value="Zone - 10">Zone - 10</li>
+                <li class="dropdown-item" data-value="Zone - 12">Zone - 12</li>
+                <li class="dropdown-item" data-value="Zone - 12A">Zone - 12A</li>
+            </ul>
+        </div>
         <button class="close-btn" id="closeBtn"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20"
                 fill="currentColor" class="bi bi-x" viewBox="0 0 16 16" style="margin-top: -3.3px;">
                 <path
@@ -127,16 +154,16 @@
                     <!-- dem -->
                 </div>
 
-                <div class="tab-pane fade" id="pills-model" role="tabpanel" aria-labelledby="pills-model-tab"
+                <!-- <div class="tab-pane fade" id="pills-model" role="tabpanel" aria-labelledby="pills-model-tab"
                     tabindex="0">
-                    <!-- model -->
-                </div>
+                  
+                </div> -->
                 <div class="tab-pane fade" id="pills-geo" role="tabpanel" aria-labelledby="pills-geo-tab" tabindex="0">
                     <!-- geo -->
                 </div>
 
                 <div class="tab-pane fade" id="pills-agc" role="tabpanel" aria-labelledby="pills-agc-tab" tabindex="0">
-                    <!-- geo -->
+                    <!-- agc -->
                 </div>
             </div>
         </div>

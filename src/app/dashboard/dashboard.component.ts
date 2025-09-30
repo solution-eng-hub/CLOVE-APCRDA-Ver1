@@ -1,5 +1,5 @@
 import { Component, OnInit, AfterViewInit, ViewChild, TemplateRef } from '@angular/core';
-import { Viewer, ProviderViewModel, Cesium3DTileset, OpenStreetMapImageryProvider, buildModuleUrl } from 'cesium';
+import { Viewer, ProviderViewModel, Cesium3DTileset, OpenStreetMapImageryProvider, buildModuleUrl, GeoJsonDataSource } from 'cesium';
 import { DomSanitizer, SafeHtml, SafeResourceUrl } from '@angular/platform-browser';
 
 // import { Cesium3DTileset } from 'cesium/Source/Scene/Cesium3DTileset';
@@ -131,10 +131,10 @@ export class DashboardComponent {
     dataVill = {
         "ortho": ["Nowluru", "Abbarajupalem", "Ainavolu", "Anantavaram", "Borupalem", "Dondapadu", "Kondamarajupalem", "Krishnayyapalem", "Kuragallu", "Lingayapalem", "Malkapuram", "Mandadam", "Mangalagiri", "Nekkallu", "Nidamarru", "Penumaka", "Pichikalapalem", "Rayapudi", "Sakhamuru", "Tadepalli", "Tulluru", "Uddandarayanipalem", "Undavalli", "Velagapudi", "Venkatapalem", "Nelapadu"],
         "dem": ["Mangalagiri"],
-        "model": ["road", "happyNest"],
+        // "model": ["road", "happyNest",],
         "geo": ["Capital City Layers", 'Amaravati Infra', "Lands", 'PlanningBoundary', 'Forests', 'Planning Boundaries', 'Transportation', 'DMPRoads'],
-        "agc": ["Base", '3D Tiles_APSFL', '3D Tiles_Towers', '3D Tiles_Buildings', 'GO-T1', 'Assembley', 'Group_D', 'HighCourt', 'NGOS', 'Towers', 'new Towers','planningamaravati_buildings','sec','zone_utils'],
-        
+        "agc": ["Base",'Roads', 'Plots','Buildings' ,'3D Tiles_APSFL', '3D Tiles_Towers', '3D Tiles_Buildings', 'GO-T1', 'Assembley', 'Group_D', 'HighCourt', 'NGOS', 'Towers', 'new Towers', 'planningamaravati_buildings', 'sec', 'zone_utils', "Amaravathi_Buildings", "Existing_Buildings", 'Amaravati_Trunk_Roads', 'Internal_Roads'],
+
     };
 
 
@@ -146,6 +146,19 @@ export class DashboardComponent {
 
 
         document.addEventListener('contextmenu', event => event.preventDefault())
+
+        const dropdownContainer = document.getElementById('multi_dropdown-container');
+        if (dropdownContainer) {
+            const dropdown = new CustomDropdown(dropdownContainer);
+        }
+
+        $('#multi_dropdown-container .dropdown-item').on('click', function () {
+            // Get the selected value from the data attribute
+            var selectedValue = $(this).data('value');
+
+            console.log('Selected:', selectedValue);
+        });
+
     }
 
     ngAfterViewInit(): void {
@@ -232,7 +245,23 @@ export class DashboardComponent {
         this.showHideEachFeatures();
         // this.loadKmlFile();
         // this.addOSMBuildings(this.viewer);
+        this.load_geojson_data(this.viewer);
     }
+
+
+     private load_geojson_data(vwr : Cesium.Viewer): void {
+
+        // Load the GeoJSON file (local or remote)
+        GeoJsonDataSource.load('./repos/Zone_Bound.geojson', {
+            clampToGround: true
+        }).then((dataSource) => {
+            vwr.dataSources.add(dataSource);
+            vwr.zoomTo(dataSource);
+        }).catch((error) => {
+            console.error('Error loading GeoJSON:', error);
+        });
+
+  }
 
 
     // dynamic_load_models_from_db() {
@@ -578,13 +607,19 @@ export class DashboardComponent {
         const $buttons: JQuery<HTMLElement> = $('#buttonWrapper');
         const $content: JQuery<HTMLElement> = $('#panelContent');
         $('.eachFretureBtns').on('click', function (this: HTMLElement): void {
-            console.log('ooooo')
+            console.log('ooooo', $(this).attr('id'));
             // console.log('Feature button clicked');
             if ($(this).hasClass('active')) {
                 $panel.addClass('active');
                 $buttons.addClass('raised');
                 $('.selecetions_4r_basemap').addClass('raised');
                 $('#offcanvasRightFeatures').addClass('raised')
+            }
+
+            if ($(this).attr('id') == 'pills-agc-tab'){
+                $('#multi_dropdown-container').css('display', 'block');
+            }else{
+                $('#multi_dropdown-container').css('display', 'none');
             }
         });
 
@@ -1391,7 +1426,7 @@ export class DashboardComponent {
                     // }
                     if (this.roffcanvasRightFertures) {
                         // this.roffcanvasRightFertures.toggle();
-                        // this.roffcanvasRightFertures.show()
+                        this.roffcanvasRightFertures.show()
                     }
                 }
             }
@@ -1401,19 +1436,19 @@ export class DashboardComponent {
         handler.setInputAction((movement: any) => {
             const pickedFeature = this.viewer!.scene.pick(movement.endPosition);
             // if (Cesium.defined(pickedFeature)) {
-                // if (pickedFeature.primitive instanceof Cesium.Cesium3DTileset) {
-                    const tileset = pickedFeature.primitive as Cesium.Cesium3DTileset;
-                    if (lastFeature && (!pickedFeature || pickedFeature !== lastFeature)) {
-                        lastFeature.color = Cesium.Color.WHITE; // reset back to original (adjust if needed)
-                        lastFeature = null;
-                    }
+            // if (pickedFeature.primitive instanceof Cesium.Cesium3DTileset) {
+            const tileset = pickedFeature.primitive as Cesium.Cesium3DTileset;
+            if (lastFeature && (!pickedFeature || pickedFeature !== lastFeature)) {
+                lastFeature.color = Cesium.Color.WHITE; // reset back to original (adjust if needed)
+                lastFeature = null;
+            }
 
-                    // Highlight current building
-                    if (pickedFeature instanceof Cesium.Cesium3DTileFeature) {
-                        pickedFeature.color = Cesium.Color.YELLOW.withAlpha(0.8); // highlight
-                        lastFeature = pickedFeature;
-                    }
-                // }
+            // Highlight current building
+            if (pickedFeature instanceof Cesium.Cesium3DTileFeature) {
+                pickedFeature.color = Cesium.Color.YELLOW.withAlpha(0.8); // highlight
+                lastFeature = pickedFeature;
+            }
+            // }
             // }
 
 
@@ -1631,7 +1666,7 @@ export class DashboardComponent {
             // Safely attach kmlName to the data source
             (kmlDataSource as any).kmlName = kmlName; // Consider defining a custom interface instead
 
-          
+
 
             // Zoom to the KML data source
             await this.viewer.zoomTo(kmlDataSource);
@@ -1664,4 +1699,97 @@ export class DashboardComponent {
 
 
 
+}
+
+
+
+
+class CustomDropdown {
+    private container: HTMLElement;
+    private header: HTMLElement;
+    private text: HTMLSpanElement;
+    private arrow: HTMLSpanElement;
+    private list: HTMLElement;
+    private items: NodeListOf<HTMLElement>;
+    private isMultiSelect: boolean;
+    private selectedValues: string[];
+
+    constructor(container: HTMLElement) {
+        this.container = container;
+        this.header = container.querySelector('.multi_dropdown-header')!;
+        this.text = container.querySelector('.dropdown-text')!;
+        this.arrow = container.querySelector('.dropdown-arrow')!;
+        this.list = container.querySelector('.dropdown-list')!;
+        this.items = container.querySelectorAll('.dropdown-item');
+        this.isMultiSelect = container.dataset['multiSelect'] === 'true';
+        this.selectedValues = [];
+
+        console.log("Dropdown initialized. Multi-select:", this.isMultiSelect);
+
+        this.initialize();
+    }
+
+    private initialize(): void {
+        this.header.addEventListener('click', () => this.toggleList());
+        this.items.forEach(item => {
+            item.addEventListener('click', () => this.handleItemClick(item));
+        });
+        document.addEventListener('click', (e: MouseEvent) => {
+            if (!this.container.contains(e.target as Node)) {
+                this.list.classList.remove('show');
+                this.arrow.classList.remove('open');
+            }
+        });
+    }
+
+    private toggleList(): void {
+        this.list.classList.toggle('show');
+        this.arrow.classList.toggle('open');
+    }
+
+    private handleItemClick(item: HTMLElement): void {
+        const value = item.dataset['value']!;
+        if (this.isMultiSelect) {
+            // Multi-select logic
+            if (this.selectedValues.includes(value)) {
+                this.selectedValues = this.selectedValues.filter(v => v !== value);
+                item.classList.remove('selected');
+            } else {
+                this.selectedValues.push(value);
+                item.classList.add('selected');
+            }
+        } else {
+            // Single-select logic
+            this.selectedValues = [value];
+            this.items.forEach(i => i.classList.remove('selected'));
+            item.classList.add('selected');
+            this.list.classList.remove('show');
+            this.arrow.classList.remove('open');
+        }
+        this.updateHeader();
+    }
+
+    private updateHeader(): void {
+        if (this.selectedValues.length === 0) {
+            this.text.textContent = 'Select an option';
+        } else {
+            this.text.textContent = this.selectedValues.join(', ');
+        }
+    }
+
+    public setMultiSelect(isMultiSelect: boolean): void {
+        this.isMultiSelect = isMultiSelect;
+        this.container.dataset['multiSelect'] = isMultiSelect.toString();
+        if (!this.isMultiSelect && this.selectedValues.length > 1) {
+            this.selectedValues = this.selectedValues.slice(0, 1);
+            this.items.forEach(item => {
+                if (!this.selectedValues.includes(item.dataset['value']!)) {
+                    item.classList.remove('selected');
+                }
+            });
+        }
+        this.updateHeader();
+    }
+
+ 
 }
