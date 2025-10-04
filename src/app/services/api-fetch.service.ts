@@ -12,7 +12,7 @@ import { Path } from 'three';
 
 export class ApiFetchService {
 
-  private apiUrl = 'http://10.91.89.22:3003';
+  private apiUrl = 'https://api.lib.axisxd.com:3004/';
   private saltKey = 'Clove@$martCity';
 
   constructor(private http: HttpClient) {}

@@ -346,7 +346,7 @@ export class DashboardComponent {
         }
 
         // Helper function to generate village label HTML
-        const generateVillageLabel = (key: string, village: string, path: string, count: number, uuid: number,imgPath:string): string => `
+        const generateVillageLabel = (key: string, village: string, path: string, count: number, uuid: number, imgPath: string): string => `
                     <label class="eachVill" for="${key}-${village}">
                         <div class="checkbox-wrapper-15 villCheck">
                             <input class="inp-cbx inputVallagesCheck" data-path="${path}" data-count="${count}"  data-uuid="${uuid}" data-village="${village}" id="${key}-${village}" type="checkbox" style="display: none;" />
@@ -375,7 +375,7 @@ export class DashboardComponent {
                 DataRaw.forEach(element => {
                     // console.log(key, element, '------------------>')
                     let imgPath = `repos/tab_images/${element.name}.webp`
-                    tabContainer.insertAdjacentHTML('beforeend', generateVillageLabel(key, element.name, element.path, element.count, element.uuid,imgPath));
+                    tabContainer.insertAdjacentHTML('beforeend', generateVillageLabel(key, element.name, element.path, element.count, element.uuid, imgPath));
                 });
             }
             else if (key == 'model' && DataRaw) {
@@ -395,7 +395,7 @@ export class DashboardComponent {
                         Sub_data.folders.forEach((element: any) => {
                             // console.log(element)
                             let imgPath = `${element.path}/1.webp`
-                            echCntnrDiv.insertAdjacentHTML('beforeend', generateVillageLabel(subKeySub, element.name, element.path, element.count, element.uuid,imgPath));
+                            echCntnrDiv.insertAdjacentHTML('beforeend', generateVillageLabel(subKeySub, element.name, element.path, element.count, element.uuid, imgPath));
                         });
                         //  echCntnrDiv.insertAdjacentHTML('beforeend', generateVillageLabel(subKey, Sub_data.name, Sub_data.path));
                     }
@@ -1336,66 +1336,206 @@ export class DashboardComponent {
     }
 
 
-    // tilesetClickToOpenRightCanvas() {
-    //     const handler = new Cesium.ScreenSpaceEventHandler(this.viewer!.scene.canvas);
-
-    //     handler.setInputAction((movement: any) => {
-    //         const pickedObject = this.viewer!.scene.pick(movement.position);
-
-    //         if (Cesium.defined(pickedObject)) {
-    //             // Check if the picked object is a Cesium3DTileset
-    //             if (pickedObject.primitive instanceof Cesium.Cesium3DTileset) {
-    //                 const tileset = pickedObject.primitive as Cesium.Cesium3DTileset;
-    //                 console.log('Clicked Tileset:', tileset);
-    //                 if (this.roffcanvasRightFertures) {
-    //                     this.roffcanvasRightFertures.show();
-    //                 }
-    //             }
-    //         }
-    //     }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
-    // }
-
     tilesetClickToOpenRightCanvas() {
         const handler = new Cesium.ScreenSpaceEventHandler(this.viewer!.scene.canvas);
         let lastFeature: Cesium.Cesium3DTileFeature | null = null;
-        handler.setInputAction((movement: any) => {
+        // handler.setInputAction((movement: any) => {
+        //     const pickedObject = this.viewer!.scene.pick(movement.position);
+
+        //     if (Cesium.defined(pickedObject)) {
+        //         // Check if the picked object is a Cesium3DTileset
+        //         if (pickedObject.primitive instanceof Cesium.Cesium3DTileset) {
+        //             const tileset = pickedObject.primitive as Cesium.Cesium3DTileset;
+
+        //             const buildingName = (tileset as any).BldgName || tileset.asset?.BldgName || tileset.properties?.BldgName;
+        //             const Vuuid = (tileset as any).uuid || tileset.asset?.uuid || tileset.properties?.uuid;
+
+        //             if (Vuuid) {
+        //                 // console.log('Building Name:', buildingName);
+        //                 const matchingProject = this.lst_projects.find(project => project.uuid === Vuuid);
+        //                 console.log(matchingProject, "matchingProjectmatchingProjectmatchingProjectmatchingProject")
+        //                 if (matchingProject) {
+        //                     if (this.roffcanvasRightFertures) {
+        //                         if(matchingProject.url.length > 0)
+        //                         {
+        //                             this.roffcanvasRightFertures.show();
+        //                             $("#dyn_bim_vwr").attr("href", matchingProject.url);
+        //                         }
+        //                     }
+        //                 } else {
+        //                     if (this.roffcanvasRightFertures) {
+        //                         this.roffcanvasRightFertures.hide()
+        //                     }
+        //                 }
+        //             }
+
+        //         }
+        //     }
+        // }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
+
+
+        let lastPickedPosition: Cesium.Cartesian3 | null = null;
+        let last_clked_obj: any = null
+
+        const updateTooltipPosition = (
+            viewer: Cesium.Viewer,
+            cartesian: Cesium.Cartesian3,
+            projectData: { [key: string]: any }
+        ) => {
+            const canvasPosition = new Cesium.Cartesian2();
+            const success = Cesium.SceneTransforms.worldToWindowCoordinates(
+                viewer.scene,
+                cartesian,
+                canvasPosition
+            );
+
+            if (success) {
+                let tooltip = document.getElementById('cesium-tooltip') as HTMLElement | null;
+
+                if (!tooltip) {
+                    tooltip = document.createElement('div');
+                    tooltip.id = 'cesium-tooltip';
+
+                    // Inline CSS styles
+                    tooltip.style.position = 'absolute';
+                    tooltip.style.backgroundColor = 'rgba(0, 0, 0, 0.8)';
+                    tooltip.style.color = '#fff';
+                    tooltip.style.padding = '10px';
+                    tooltip.style.borderRadius = '5px';
+                    tooltip.style.fontSize = '13px';
+                    tooltip.style.pointerEvents = 'none';
+                    tooltip.style.zIndex = '1000';
+                    tooltip.style.whiteSpace = 'pre-line';
+                    tooltip.style.maxWidth = '400px';
+                    document.body.appendChild(tooltip);
+                }
+
+                // Format key (e.g., contractor_id → Contractor Id)
+                const formatKey = (key: string): string =>
+                    key.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+
+                // Build HTML table from projectData
+                let html = `<div><strong>Project Details:</strong><br/><br/>`;
+                html += `<table style="width: 100%; border-collapse: collapse;">`;
+
+                for (const key in projectData) {
+                    if (!key.toLowerCase().includes('id')) {
+                        if (projectData.hasOwnProperty(key)) {
+                            const value = projectData[key] ?? '—';
+                            html += `
+                            <tr>
+                                <td style="border: 1px solid #999; padding: 4px; font-weight: bold; background-color: #222;">${formatKey(key)}</td>
+                                <td style="border: 1px solid #999; padding: 4px; background-color: #333;">${value}</td>
+                            </tr>`;
+                        }
+                    }
+
+                }
+
+                html += `</table></div>`;
+
+                tooltip.innerHTML = html;
+
+                const tooltipHeight = tooltip.offsetHeight || 20;
+                const tooltipWidth = tooltip.offsetWidth || 150;
+
+                tooltip.style.left = `${canvasPosition.x - tooltipWidth / 2}px`;
+                tooltip.style.top = `${canvasPosition.y - tooltipHeight - 10}px`;
+                tooltip.style.display = 'block';
+            }
+        };
+
+
+
+
+
+
+
+        // Handle left-click to pick an object
+        handler.setInputAction((movement: Cesium.ScreenSpaceEventHandler.PositionedEvent) => {
             const pickedObject = this.viewer!.scene.pick(movement.position);
+            this.roffcanvasRightFertures!.hide();
 
             if (Cesium.defined(pickedObject)) {
-                // Check if the picked object is a Cesium3DTileset
+                last_clked_obj = pickedObject;
                 if (pickedObject.primitive instanceof Cesium.Cesium3DTileset) {
-                    const tileset = pickedObject.primitive as Cesium.Cesium3DTileset;
 
+                    const cartesian = this.viewer!.scene.pickPosition(movement.position);
+                    const tileset = pickedObject.primitive as Cesium.Cesium3DTileset;
                     const buildingName = (tileset as any).BldgName || tileset.asset?.BldgName || tileset.properties?.BldgName;
                     const Vuuid = (tileset as any).uuid || tileset.asset?.uuid || tileset.properties?.uuid;
-
                     if (Vuuid) {
                         // console.log('Building Name:', buildingName);
                         const matchingProject = this.lst_projects.find(project => project.uuid === Vuuid);
                         console.log(matchingProject, "matchingProjectmatchingProjectmatchingProjectmatchingProject")
                         if (matchingProject) {
                             if (this.roffcanvasRightFertures) {
-                                this.roffcanvasRightFertures.show()
-                                $("#dyn_bim_vwr").attr("href", matchingProject.url)
+
+                                if (Cesium.defined(cartesian)) {
+                                    lastPickedPosition = cartesian;
+
+                                    updateTooltipPosition(this.viewer!, cartesian, matchingProject);
+                                }
+
+                                if (matchingProject.url.length > 0) {
+                                    this.roffcanvasRightFertures.show();
+                                    $("#dyn_bim_vwr").attr("href", matchingProject.url);
+                                }
+                                else {
+                                    this.roffcanvasRightFertures.hide();
+
+                                }
                             }
-                        } else {
+                        }
+                        else {
                             if (this.roffcanvasRightFertures) {
                                 this.roffcanvasRightFertures.hide()
                             }
                         }
-                    }
 
+
+
+                    }
+                }
+                else {
+                    // Hide tooltip and clear stored position
+                    const tooltip = document.getElementById('cesium-tooltip');
+                    if (tooltip) {
+                        tooltip.style.display = 'none';
+                    }
+                    lastPickedPosition = null;
                 }
             }
         }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
 
+        // Update tooltip position when the camera moves (e.g., during panning)
+        // this.viewer!.scene.camera.moveEnd.addEventListener(() => {
+        //     if (lastPickedPosition) {
+        //         updateTooltipPosition(this.viewer!, lastPickedPosition);
+        //     }
+        // });
 
-        
+        // Optional: Update tooltip in real-time during mouse movement
+        // handler.setInputAction((movement: Cesium.ScreenSpaceEventHandler.MotionEvent) => {
+        //     if (lastPickedPosition) {
+        //         updateTooltipPosition(this.viewer!, lastPickedPosition);
+        //     }
+        // }, Cesium.ScreenSpaceEventType.MOUSE_MOVE);
 
         handler.setInputAction((movement: any) => {
             const pickedObject = this.viewer!.scene.pick(movement.endPosition);
 
             if (Cesium.defined(pickedObject)) {
+
+                if (last_clked_obj != pickedObject) {
+                    const tooltip = document.getElementById('cesium-tooltip');
+                    if (tooltip) {
+                        tooltip.style.display = 'none';
+                    }
+                    lastPickedPosition = null;
+                }
+
+
                 // Check if the picked object is a Cesium3DTileset
                 if (pickedObject.primitive instanceof Cesium.Cesium3DTileset) {
                     const tileset = pickedObject.primitive as Cesium.Cesium3DTileset;
@@ -1406,10 +1546,10 @@ export class DashboardComponent {
                         lastFeature = null;
                     }
 
-
                     const buildingName = (tileset as any).BldgName || tileset.asset?.BldgName || tileset.properties?.BldgName;
                     const Vuuid = (tileset as any).uuid || tileset.asset?.uuid || tileset.properties?.uuid;
                     if (Vuuid) {
+
                         const matchingProject = this.lst_projects.find(project => project.uuid === Vuuid);
                         if (matchingProject) {
 
@@ -1720,31 +1860,141 @@ export class DashboardComponent {
 
 
 
-     activeButtonId: string | null = null;
+    activeButtonId: string | null = null;
     toggleActive(id: string) {
         this.activeButtonId = this.activeButtonId === id ? null : id; // Toggle active state
     }
- 
+
     ProjectsButton1Click(id: string) {
         console.log(id);
+        this.removeAll();
         this.toggleActive(id);
+        // Note: Intentionally NOT calling removeAll() here? If it should, add: this.removeAll();
+
+        this.handleOthersSelection((checkbox) => {
+            if (checkbox.data('village') !== 'Buildings') {
+                checkbox.prop('checked', true);
+            }
+        });
+
+        this.Load_AGC_models();
     }
- 
+
     HandBOfficeButton1Click(id: string) {
         console.log(id);
         this.toggleActive(id);
+        this.removeAll();
+
+        this.handleOthersSelection((checkbox) => {
+            const village = checkbox.data('village');
+            if (village !== 'Buildings' && village !== 'Trunks') {
+                checkbox.prop('checked', true);
+            } else {
+                checkbox.prop('checked', false);
+            }
+        });
+
+        this.Load_AGC_models();
     }
- 
+
     TrunkButton1Click(id: string) {
         console.log(id);
         this.toggleActive(id);
+        this.removeAll();
+
+        this.handleOthersSelection((checkbox) => {
+            if (checkbox.data('village') === 'Trunks') {  // Fixed: Use === for strict equality
+                checkbox.prop('checked', true);
+            } else {
+                checkbox.prop('checked', false);
+            }
+        });
+
+        this.Load_AGC_models();
     }
- 
+
     LpsButton1Click(id: string) {
         console.log(id);
         this.toggleActive(id);
+        this.removeAll();
+        let self = this
+        const $dropdownItems = $('#multi_dropdown-container .dropdown-item');
+
+        $dropdownItems.each(function () {
+            const $item = $(this);
+            const dataAttrs = $item.data('value');
+
+            $dropdownItems.removeClass('selected');
+            $item.addClass('selected');
+            if (dataAttrs) {
+                $('.eachCntnrDiv').each(function () {
+                    const container = $(this);
+                    const containerKey = container.data('key');
+                    // console.log(containerKey,dataAttrs )
+                    if (containerKey !== 'Others' && containerKey == dataAttrs) {
+                        self.drpDownSelZone = containerKey
+                        console.log(containerKey)
+                        container.find('.villCheck .inputVallagesCheck').each(function () {
+
+                            $(this).prop('checked', true);
+
+                        });
+                        self.Load_AGC_models()
+                    } else {
+                        container.find('.villCheck .inputVallagesCheck').each(function () {
+
+                            $(this).prop('checked', false);
+
+                        });
+                    }
+
+                });
+                //
+            }
+
+            //
+        });
+
+
     }
- 
+
+    // New helper method: Extracts the common "Others" dropdown + container logic
+    private handleOthersSelection(checkboxCallback: (checkbox: JQuery<HTMLElement>) => void) {
+        const $dropdownItems = $('#multi_dropdown-container .dropdown-item');
+        $dropdownItems.removeClass('selected');
+        $dropdownItems.filter('[data-value="Others"]').addClass('selected');
+
+        // Removed unnecessary if ($dropdownItems) check—it's always a valid jQuery object
+
+        $('.eachCntnrDiv').each((_, elem) => {  // Arrow function avoids 'self' pattern
+            const container = $(elem);
+            const containerKey = container.data('key');
+            if (containerKey === 'Others') {
+                container.css('display', 'block');
+                console.log(containerKey, 'containerKeycontainerKey');
+                this.drpDownSelZone = containerKey;
+                container.find('.villCheck .inputVallagesCheck').each((_, checkboxElem) => {
+                    const checkbox = $(checkboxElem);
+                    checkboxCallback(checkbox);
+                });
+            } else {
+                container.css('display', 'none');
+            }
+        });
+    }
+
+    removeAll() {
+        if (!this.loadedModelTilesets || this.loadedModelTilesets.size === 0) {
+            return;  // Early exit if nothing to remove
+        }
+
+        this.loadedModelTilesets.forEach((tileset, name) => {
+            this.viewer!.scene.primitives.remove(tileset);
+        });
+
+        this.loadedModelTilesets.clear();
+    }
+
     HandBBuildingsButton1Click(id: string) {
         console.log(id);
         this.toggleActive(id);
