@@ -420,3 +420,133 @@ body {
 	border-right: 1px solid #ccc;
 	z-index: 1000;
 }
+
+// -------------------------------
+
+// dropdown css
+#multi_dropdown-container {
+    background: #fff;
+    float: right;
+    position: absolute;
+    right: 10px;
+    padding: 8px 12px;
+    border-radius: 10px;
+    display: none;
+}
+
+.dropdown-container {
+    position: relative;
+    width: 200px;
+    // float: right;
+    // margin-right: 50px;
+    font-family: Arial, sans-serif;
+}
+
+.dropdown-header {
+    border: 1px solid #ccc;
+    padding: 10px;
+    cursor: pointer;
+    background: #f9f9f9;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 5px;
+    border-radius: 10px;
+    outline: 0;
+    border: 0;
+}
+
+.dropdown-text {
+    flex-grow: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.dropdown-arrow {
+    font-size: 12px;
+    margin-right: 8px;
+    float: right;
+    transition: transform 0.2s ease;
+}
+
+.dropdown-arrow.open {
+    transform: rotate(180deg);
+}
+
+.dropdown-list {
+    display: none;
+    position: absolute;
+    bottom: 100%;
+    /* Changed from top: 100% to make it open upwards */
+    left: 0;
+    right: 0;
+    background: #fff;
+    max-height: 400px;
+    overflow-y: auto;
+    z-index: 1000;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    border-radius: 4px;
+    /* Optional: for consistent styling */
+    /* Optional: shadow for better visibility */
+}
+
+.dropdown-list.show {
+    display: block;
+}
+
+.dropdown-item {
+    padding: 4px 10px 4px 15px !important;
+    cursor: pointer;
+}
+
+.dropdown-item:hover {
+    background: #f0f0f0 !important;
+}
+
+.dropdown-item.selected {
+    background: #007bff;
+    color: #fff;
+}
+
+.multi_dropdown-header {
+    display: flex;
+    align-items: center;
+}
+.btn_hover.active{
+    background-color: rgb(247, 132, 90);;
+}
+
+
+// #cesium-tooltip::before {
+//     content: '';
+//     position: absolute;
+//     top: 100%;
+//     /* Position below the tooltip */
+//     left: 50%;
+//     transform: translateX(-50%);
+//     /* Center horizontally */
+//     width: 0;
+//     height: 0;
+//     border-left: 9px solid transparent;
+//     border-right: 9px solid transparent;
+//     border-top: 9px solid #fff;
+//     /* Match tooltip border */
+//     z-index: -1;
+//     /* Place behind the main triangle */
+// }#cesium-tooltip::after {
+//     content: '';
+//     position: absolute;
+//     bottom: -8px;
+//     left: 50%;
+//     transform: translateX(-50%);
+//     width: 0;
+//     height: 0;
+//     border-left: 8px solid transparent;
+//     border-right: 8px solid transparent;
+//     border-top: 8px solid rgba(255, 255, 255, 0.95);
+//     border-top-color: inherit;
+// }

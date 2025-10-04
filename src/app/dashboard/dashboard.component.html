@@ -14,29 +14,39 @@
             <input type="text" placeholder="Search Here..." id="globalSearchVillages" />
         </div>
     </div>
-    <div class="topNavButtons">
+   <div class="topNavButtons">
         <span class="btn_info_div">
-            <div class="btn_hover">
+            <div class="btn_hover" id="0" [ngClass]="{'active': activeButtonId === '0'}"
+                (click)="ProjectsButton1Click('0')">
                 <div class="upper_text"><span>Total Projects</span></div>
                 <div class="lower_text"><span>Total Projects</span></div>
             </div>
         </span>
         <span class="btn_info_div">
-            <div class="btn_hover">
-                <div class="upper_text"><span>H&B</span></div>
-                <div class="lower_text"><span>H&B</span></div>
+            <div class="btn_hover" id="3" [ngClass]="{'active': activeButtonId === '3'}"
+                (click)="HandBOfficeButton1Click('3')">
+                <div class="upper_text"><span>H&B Offices</span></div>
+                <div class="lower_text"><span>H&B Offices</span></div>
             </div>
         </span>
         <span class="btn_info_div">
-            <div class="btn_hover">
+            <div class="btn_hover" id="2" [ngClass]="{'active': activeButtonId === '2'}"
+                (click)="TrunkButton1Click('2')">
                 <div class="upper_text"><span>Trunk</span></div>
                 <div class="lower_text"><span>Trunk</span></div>
             </div>
         </span>
         <span class="btn_info_div">
-            <div class="btn_hover">
+            <div class="btn_hover" id="1" [ngClass]="{'active': activeButtonId === '1'}" (click)="LpsButton1Click('1')">
                 <div class="upper_text"><span>LPS</span></div>
                 <div class="lower_text"><span>LPS</span></div>
+            </div>
+        </span>
+        <span class="btn_info_div">
+            <div class="btn_hover" id="4" [ngClass]="{'active': activeButtonId === '4'}"
+                (click)="HandBBuildingsButton1Click('4')">
+                <div class="upper_text"><span>H&B Buildings</span></div>
+                <div class="lower_text"><span>H&B Buildings</span></div>
             </div>
         </span>
     </div>
@@ -48,7 +58,7 @@
                     data-bs-toggle="pill" data-bs-target="#pills-ortho" type="button" role="tab"
                     aria-controls="pills-home" aria-selected="false">
                     <img src="./assets/icons/pills_images/ortho.webp">
-                    <span>ORTHO</span>
+                    <span>ortho</span>
                 </button>
             </li>
             <li class="nav-item" role="presentation">
@@ -56,34 +66,43 @@
                     data-bs-toggle="pill" data-bs-target="#pills-dem" type="button" role="tab" aria-controls="pills-dem"
                     aria-selected="false">
                     <img src="./assets/icons/pills_images/dem.webp">
-                    <span>DEM</span>
+                    <span>dem</span>
                 </button>
             </li>
-            <li class="nav-item" role="presentation" style="display: none;">
+            <li class="nav-item" role="presentation">
                 <button class="eachFretureBtns btn btn-secondary" data-Serv="model" title="model" id="pills-model-tab"
                     data-bs-toggle="pill" data-bs-target="#pills-model" type="button" role="tab"
                     aria-controls="pills-model" aria-selected="false">
-                    <img src="./assets/icons/pills_images/model.webp">
+                    <img src="./assets/icons/pills_images/agc.webp">
                     <span>model</span>
                 </button>
             </li>
             <li class="nav-item" role="presentation">
-                <button class="eachFretureBtns btn btn-secondary" data-Serv="geo" title="geo" id="pills-geo-tab"
-                    data-bs-toggle="pill" data-bs-target="#pills-geo" type="button" role="tab" aria-controls="pills-geo"
+                <button class="eachFretureBtns btn btn-secondary" data-Serv="gis" title="gis" id="pills-gis-tab"
+                    data-bs-toggle="pill" data-bs-target="#pills-gis" type="button" role="tab" aria-controls="pills-gis"
                     aria-selected="false">
                     <img src="./assets/icons/pills_images/jsonImg.webp">
-                    <span>GIS</span>
+                    <span>gis</span>
                 </button>
             </li>
-            <li class="nav-item" role="presentation">
+            <!-- <li class="nav-item" role="presentation">
                 <button class="eachFretureBtns btn btn-secondary" data-Serv="agc" title="agc" id="pills-agc-tab"
                     data-bs-toggle="pill" data-bs-target="#pills-agc" type="button" role="tab" aria-controls="pills-agc"
                     aria-selected="false">
                     <img src="./assets/icons/pills_images/agc.webp">
-                    <span>MODEL</span>
+                    <span>agc</span>
                 </button>
-            </li>
+            </li> -->
         </ul>
+        <div class="dropdown-container" data-multi-select="false" id="multi_dropdown-container">
+            <div class="multi_dropdown-header">
+                <span class="dropdown-text">Select an option</span>
+                <span class="dropdown-arrow">▼</span>
+            </div>
+            <ul class="dropdown-list">
+              
+            </ul>
+        </div>
 
     </div>
     <div class="slide-up-panel" id="slidePanel">
@@ -111,33 +130,10 @@
             </div>
             <div class="selectAllLable"><label for="selectAllVill">Select all</label></div>
         </div>
-        <div class="dropdown-container" data-multi-select="false" id="multi_dropdown-container">
-            <div class="multi_dropdown-header">
-                <span class="dropdown-text">Select </span>
-                <span class="dropdown-arrow">▼</span>
-            </div>
-            <ul class="dropdown-list">
-                <li class="dropdown-item selected" data-value="AGC">AGC</li>
-                <li class="dropdown-item" data-value="Zone - 1A">Zone - 1A</li>
-                <li class="dropdown-item" data-value="Zone - 1B">Zone - 1B</li>
-                <li class="dropdown-item" data-value="Zone - 2A">Zone - 2A</li>
-                <li class="dropdown-item" data-value="Zone - 2B">Zone - 2B</li>
-                <li class="dropdown-item" data-value="Zone - 3A">Zone - 3A</li>
-                <li class="dropdown-item" data-value="Zone - 3B">Zone - 3B</li>
-                <li class="dropdown-item" data-value="Zone - 4">Zone - 4</li>
-                <li class="dropdown-item" data-value="Zone - 5A">Zone - 5A</li>
-                <li class="dropdown-item" data-value="Zone - 5C">Zone - 5C</li>
-                <li class="dropdown-item" data-value="Zone - 5B">Zone - 5B</li>
-                <li class="dropdown-item" data-value="Zone - 5D">Zone - 5D</li>
-                <li class="dropdown-item" data-value="Zone - 6">Zone - 6</li>
-                <li class="dropdown-item" data-value="Zone - 7">Zone - 7</li>
-                <li class="dropdown-item" data-value="Zone - 9">Zone - 9</li>
-                <li class="dropdown-item" data-value="Zone - 9A">Zone - 9A</li>
-                <li class="dropdown-item" data-value="Zone - 10">Zone - 10</li>
-                <li class="dropdown-item" data-value="Zone - 12">Zone - 12</li>
-                <li class="dropdown-item" data-value="Zone - 12A">Zone - 12A</li>
-            </ul>
-        </div>
+
+
+
+
         <button class="close-btn" id="closeBtn"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20"
                 fill="currentColor" class="bi bi-x" viewBox="0 0 16 16" style="margin-top: -3.3px;">
                 <path
@@ -154,17 +150,17 @@
                     <!-- dem -->
                 </div>
 
-                <!-- <div class="tab-pane fade" id="pills-model" role="tabpanel" aria-labelledby="pills-model-tab"
+                <div class="tab-pane fade" id="pills-model" role="tabpanel" aria-labelledby="pills-model-tab"
                     tabindex="0">
-                  
-                </div> -->
-                <div class="tab-pane fade" id="pills-geo" role="tabpanel" aria-labelledby="pills-geo-tab" tabindex="0">
-                    <!-- geo -->
+                    <!-- model -->
+                </div>
+                <div class="tab-pane fade" id="pills-gis" role="tabpanel" aria-labelledby="pills-gis-tab" tabindex="0">
+                    <!-- gis -->
                 </div>
 
-                <div class="tab-pane fade" id="pills-agc" role="tabpanel" aria-labelledby="pills-agc-tab" tabindex="0">
-                    <!-- agc -->
-                </div>
+                <!-- <div class="tab-pane fade" id="pills-agc" role="tabpanel" aria-labelledby="pills-agc-tab" tabindex="0">
+              
+                </div> -->
             </div>
         </div>
     </div>
@@ -195,10 +191,14 @@
         data-bs-backdrop="false" data-bs-scroll="true">
         <!-- <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button> -->
         <div class="offcanvas-body">
-            <div class="modelcanvasInsideFeatures" title="Bim" (click)="openModal('Bim')">
+            <!-- <div href="" class="modelcanvasInsideFeatures" title="Bim"  (click)="openModal('Bim')">
                 <img src="/assets/icons/pills_images/bim.webp" alt="">
                 <span>Bim</span>
-            </div>
+            </div> -->
+            <a href="#" class="modelcanvasInsideFeatures" title="Bim"  id="dyn_bim_vwr" target="_blank">
+                <img src="/assets/icons/pills_images/bim.webp" alt="">
+                <span>Bim</span>
+            </a>
             <div class="modelcanvasInsideFeatures" title="Video" (click)="openModal('Video')">
                 <img src="/assets/icons/pills_images/Video.webp" alt="">
                 <span>Video</span>
