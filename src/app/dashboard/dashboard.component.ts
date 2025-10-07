@@ -1080,10 +1080,10 @@ export class DashboardComponent {
                 // console.log(pickedFeature, "--------", propertyIds)
 
                 // Reset previous building color
-                if (lastFeature && (!pickedFeature || pickedFeature !== lastFeature)) {
-                    lastFeature.color = Cesium.Color.WHITE;
-                    lastFeature = null;
-                }
+                // if (lastFeature && (!pickedFeature || pickedFeature !== lastFeature)) {
+                //     lastFeature.color = Cesium.Color.WHITE;
+                //     lastFeature = null;
+                // }
 
                 if (HvrFeatureName == "Project") {
 
@@ -1094,8 +1094,9 @@ export class DashboardComponent {
                 else {
                     // Highlight current building
                     if (pickedFeature instanceof Cesium.Cesium3DTileFeature) {
-                        pickedFeature.color = Cesium.Color.YELLOW.withAlpha(0.8); // highlight
-                        lastFeature = pickedFeature;
+                        // pickedFeature.color = Cesium.Color.YELLOW.withAlpha(0.8); // highlight
+                        // lastFeature = pickedFeature;
+                        
                     }
 
                 }
@@ -1458,44 +1459,45 @@ export class DashboardComponent {
 
             if (Cesium.defined(pickedObject)) {
                 last_clked_obj = pickedObject;
+                console.log(pickedObject, "pickedObjectpickedObject")
                 if (pickedObject.primitive instanceof Cesium.Cesium3DTileset) {
 
                     const cartesian = this.viewer!.scene.pickPosition(movement.position);
                     const tileset = pickedObject.primitive as Cesium.Cesium3DTileset;
                     const buildingName = (tileset as any).BldgName || tileset.asset?.BldgName || tileset.properties?.BldgName;
                     const Vuuid = (tileset as any).uuid || tileset.asset?.uuid || tileset.properties?.uuid;
-                    if (Vuuid) {
-                        // console.log('Building Name:', buildingName);
-                        const matchingProject = this.lst_projects.find(project => project.uuid === Vuuid);
-                        console.log(matchingProject, "matchingProjectmatchingProjectmatchingProjectmatchingProject")
-                        if (matchingProject) {
-                            if (this.roffcanvasRightFertures) {
+                    // if (Vuuid) {
+                    //     // console.log('Building Name:', buildingName);
+                    //     const matchingProject = this.lst_projects.find(project => project.uuid === Vuuid);
+                    //     console.log(matchingProject, "matchingProjectmatchingProjectmatchingProjectmatchingProject")
+                    //     if (matchingProject) {
+                    //         if (this.roffcanvasRightFertures) {
 
-                                if (Cesium.defined(cartesian)) {
-                                    lastPickedPosition = cartesian;
+                    //             if (Cesium.defined(cartesian)) {
+                    //                 lastPickedPosition = cartesian;
 
-                                    updateTooltipPosition(this.viewer!, cartesian, matchingProject);
-                                }
+                    //                 updateTooltipPosition(this.viewer!, cartesian, matchingProject);
+                    //             }
 
-                                if (matchingProject.url.length > 0) {
-                                    this.roffcanvasRightFertures.show();
-                                    $("#dyn_bim_vwr").attr("href", matchingProject.url);
-                                }
-                                else {
-                                    this.roffcanvasRightFertures.hide();
+                    //             if (matchingProject.url.length > 0) {
+                    //                 this.roffcanvasRightFertures.show();
+                    //                 $("#dyn_bim_vwr").attr("href", matchingProject.url);
+                    //             }
+                    //             else {
+                    //                 this.roffcanvasRightFertures.hide();
 
-                                }
-                            }
-                        }
-                        else {
-                            if (this.roffcanvasRightFertures) {
-                                this.roffcanvasRightFertures.hide()
-                            }
-                        }
+                    //             }
+                    //         }
+                    //     }
+                    //     else {
+                    //         if (this.roffcanvasRightFertures) {
+                    //             this.roffcanvasRightFertures.hide()
+                    //         }
+                    //     }
 
 
 
-                    }
+                    // }
                 }
                 else {
                     // Hide tooltip and clear stored position
